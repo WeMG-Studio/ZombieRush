@@ -1,77 +1,67 @@
+using System;
 using System.Collections;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("Refs")]
+    [Header("Core Refs")]
     public GameParams config;
     public RailManager rail;
+
     public Button btnAdvance;
     public Button btnFix;
-    public Slider distanceBar;
-    public TMP_Text levelText;
-    public TMP_Text stepsText;
-
-    float distance;    // 현재 거리 (0~maxDistance)
+    // 상태
+    float distance;
     int level;
     bool isDead;
 
+    // 외부에 노출(읽기 전용)
+    public float Distance => distance;        // 0 ~ maxDistance
+    public int Level => level;
+    public bool IsDead => isDead;
+
+    // 이벤트: HUD/연출/적 AI 등이 구독
+    public event Action<float> OnDistanceNormalized; // 0~1
+    public event Action<int> OnLevelChanged;
+    public event Action<int> OnStepsChanged;
+    public event Action<string> OnDied;
+
     void Awake()
     {
+
+        if (btnAdvance) btnAdvance.onClick.AddListener(() => Advance());
+        if (btnFix) btnFix.onClick.AddListener(() => FixAndAdvance());
         distance = config.maxDistance;
-        UpdateUI();
-        btnAdvance.onClick.AddListener(OnAdvance);
-        btnFix.onClick.AddListener(OnFix);
+        EmitAll();
     }
 
     void Update()
     {
+        //keyboard input test
+        if (Input.GetKeyDown(KeyCode.UpArrow)) Advance();
+        if (Input.GetKeyDown(KeyCode.Space)) FixAndAdvance();
+
+
         if (isDead) return;
 
-        // 초당 감소량 = base + level*k (상한 캡)
+        // 지속 감소(좀비 접근)
         float decay = Mathf.Min(config.baseDecay + level * config.decayPerLevel, config.maxDecay);
+        var prev = distance;
         distance -= decay * Time.deltaTime;
+
         if (distance <= 0f)
         {
             distance = 0f;
             Die("좀비에게 잡혔어!");
         }
-        UpdateUI();
 
-        //KeyboardTest
-        if(Input.GetKeyDown(KeyCode.Space)) OnFix();
-        if(Input.GetKeyDown(KeyCode.UpArrow)) OnAdvance();
-
+        if (!Mathf.Approximately(prev, distance))
+            EmitDistance();
     }
-    void OnFix()
-    {
-        if (isDead) return;
-        if (rail.CurrentTile == null) return;
 
-        // 1) 현재 칸이 이미 '직선'이면 즉시 패배
-        if (rail.CurrentTile.Type == RailType.Straight)
-        {
-            Die("직선에서 교정 시 패배!");
-            return;
-        }
-
-        // 2) 굽은 칸이면 교정 후 전진
-        rail.FixCurrent();
-
-        if (!rail.TryAdvance())
-        {
-            // 이론상 여기 도달하기 어렵지만 안전망 유지
-            Die("교정 후 전진 실패!");
-            return;
-        }
-
-        // 3) 전진 성공 보상 및 레벨/UI 갱신
-        distance = Mathf.Min(config.maxDistance, distance + config.gainPerStep);
-        level = rail.Steps / config.stepsPerLevel;  
-    }
-    void OnAdvance()
+    // 우측 버튼: 전진
+    public void Advance()
     {
         if (isDead) return;
 
@@ -80,27 +70,54 @@ public class GameManager : MonoBehaviour
             Die("비직선 레일에서 전진!");
             return;
         }
-        // 성공 보상: 거리 회복
-        distance = Mathf.Min(config.maxDistance, distance + config.gainPerStep);
 
-        // 레벨 갱신
-        level = rail.Steps / config.stepsPerLevel;
-
-        UpdateUI();
+        HealOnStep();
+        LevelRecalc();
+        EmitAll();
     }
-    void UpdateUI()
+
+    // 좌측 버튼: 교정 + 전진 (직선에서 교정하면 즉사)
+    public void FixAndAdvance()
     {
-        if (distanceBar) distanceBar.value = distance / config.maxDistance;
-        if (levelText) levelText.text = $"Lv {level}";
-        if (stepsText) stepsText.text = $"{rail.Steps} steps";
+        if (isDead) return;
+        if (rail.CurrentTile == null) return;
+
+        if (rail.CurrentTile.Type == RailType.Straight)
+        {
+            Die("직선에서 교정 시 패배!");
+            return;
+        }
+
+        rail.FixCurrent();
+
+        if (!rail.TryAdvance())
+        {
+            Die("교정 후 전진 실패!");
+            return;
+        }
+
+        HealOnStep();
+        LevelRecalc();
+        EmitAll();
+    }
+
+    void HealOnStep()
+    {
+        distance = Mathf.Min(config.maxDistance, distance + config.gainPerStep);
+    }
+
+    void LevelRecalc()
+    {
+        level = rail.Steps / config.stepsPerLevel;
     }
 
     void Die(string reason)
     {
+        if (isDead) return;
         isDead = true;
+        OnDied?.Invoke(reason);
         StartCoroutine(FailFx());
         Debug.Log($"DEAD: {reason}");
-        // 여기서 리트라이 패널/점수 기록 호출
     }
 
     IEnumerator FailFx()
@@ -110,4 +127,10 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(config.failSlowmoTime);
         Time.timeScale = original;
     }
+
+    // ---------- 이벤트 발행 ----------
+    void EmitDistance() => OnDistanceNormalized?.Invoke(distance / config.maxDistance);
+    void EmitLevel() => OnLevelChanged?.Invoke(level);
+    void EmitSteps() => OnStepsChanged?.Invoke(rail.Steps);
+    void EmitAll() { EmitDistance(); EmitLevel(); EmitSteps(); }
 }

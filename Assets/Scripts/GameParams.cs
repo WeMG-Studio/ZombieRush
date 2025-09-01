@@ -15,7 +15,7 @@ public class GameParams : ScriptableObject
     public int visibleTiles = 7;
 
     [Header("Generation")]
-    public float bentProbMin = 0.15f;     // 초반 휘어진 타일 확률
+    public float bentProbMin = 0.2f;     // 초반 휘어진 타일 확률
     public float bentProbMax = 0.4f;      // 상한
 
     [Header("Fail FX")]

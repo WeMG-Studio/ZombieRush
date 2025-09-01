@@ -16,10 +16,10 @@ MonoBehaviour:
   baseDecay: 4
   decayPerLevel: 1.2
   maxDecay: 18
-  gainPerStep: 8
+  gainPerStep: 4
   stepsPerLevel: 10
   visibleTiles: 7
-  bentProbMin: 0.15
-  bentProbMax: 0.4
+  bentProbMin: 0.2
+  bentProbMax: 0.5
   failSlowmo: 0.15
   failSlowmoTime: 0.35
