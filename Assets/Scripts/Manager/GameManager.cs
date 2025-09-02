@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] GameOverPanel gameOverPanel;
+
     [Header("Core Refs")]
     public GameParams config;
     public RailManager rail;
@@ -118,6 +120,10 @@ public class GameManager : MonoBehaviour
         OnDied?.Invoke(reason);
         StartCoroutine(FailFx());
         Debug.Log($"DEAD: {reason}");
+        //Todo : die Panel ¶ç¿ì±â
+        gameOverPanel.gameObject.SetActive(true);
+        gameOverPanel.UpdateUI(rail.Steps);
+
     }
 
     IEnumerator FailFx()
