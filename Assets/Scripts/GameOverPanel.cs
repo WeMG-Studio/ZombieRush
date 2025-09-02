@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
@@ -19,7 +20,7 @@ public class GameOverPanel : MonoBehaviour
     }
     private void RetryOnClick()
     {
-
+        
     }
     private void ToLobbyOnClick()
     {

@@ -18,6 +18,11 @@ public class GameManager : MonoBehaviour
     int level;
     bool isDead;
 
+    [Header("Wall Scroll")]
+    public VerticalLoopScroller[] wallScrollers; 
+    public float scrollBurstBase = 2.5f;         
+    public float scrollBurstPerLevel = 0.1f;
+
     // 외부에 노출(읽기 전용)
     public float Distance => distance;        // 0 ~ maxDistance
     public int Level => level;
@@ -61,6 +66,13 @@ public class GameManager : MonoBehaviour
         if (!Mathf.Approximately(prev, distance))
             EmitDistance();
     }
+    void ApplyScrollBurst()
+    {
+        float amount = scrollBurstBase + level * scrollBurstPerLevel;
+        if (wallScrollers != null)
+            foreach (var sc in wallScrollers)
+                if (sc) sc.AddBurst(amount);
+    }
 
     // 우측 버튼: 전진
     public void Advance()
@@ -76,6 +88,7 @@ public class GameManager : MonoBehaviour
         HealOnStep();
         LevelRecalc();
         EmitAll();
+        ApplyScrollBurst();
     }
 
     // 좌측 버튼: 교정 + 전진 (직선에서 교정하면 즉사)
@@ -101,6 +114,7 @@ public class GameManager : MonoBehaviour
         HealOnStep();
         LevelRecalc();
         EmitAll();
+        ApplyScrollBurst();
     }
 
     void HealOnStep()
