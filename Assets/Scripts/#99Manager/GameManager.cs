@@ -7,6 +7,9 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] GameOverPanel gameOverPanel;
 
+    [Header("Characters")]
+    public Player player;
+
     [Header("Core Refs")]
     public GameParams config;
     public RailManager rail;
@@ -89,6 +92,7 @@ public class GameManager : MonoBehaviour
         LevelRecalc();
         EmitAll();
         ApplyScrollBurst();
+        if (player) player.PlayStepBounce(1f);
     }
 
     // 좌측 버튼: 교정 + 전진 (직선에서 교정하면 즉사)
@@ -115,6 +119,7 @@ public class GameManager : MonoBehaviour
         LevelRecalc();
         EmitAll();
         ApplyScrollBurst();
+        if (player) player.PlayStepBounce(1f);
     }
 
     void HealOnStep()

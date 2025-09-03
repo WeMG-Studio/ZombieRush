@@ -7,6 +7,8 @@ public class GameOverPanel : MonoBehaviour
 {
     [SerializeField] Button retryBtn,toLobbyBtn;
     [SerializeField] TextMeshProUGUI highScoreText;
+    [SerializeField] TextMeshProUGUI highScoreAlarmText;
+    [SerializeField] TextMeshProUGUI scoreText;
 
     private void Awake()
     {
@@ -15,16 +17,22 @@ public class GameOverPanel : MonoBehaviour
     }
     public void UpdateUI(int _score)
     {
-        highScoreText.text = _score.ToString();
-
+        scoreText.text = _score.ToString();
+        int highScore = PlayerPrefs.GetInt("HighScore");
+        if(highScore < _score)
+        {
+            highScoreText.text = _score.ToString();
+            highScoreAlarmText.gameObject.SetActive(true);
+        }else highScoreAlarmText.gameObject.SetActive(false);
     }
     private void RetryOnClick()
     {
-        
+        var active = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(active.buildIndex);
     }
     private void ToLobbyOnClick()
     {
-
+        SceneManager.LoadScene("LobbyScene");
     }
 
 

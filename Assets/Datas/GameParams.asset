@@ -15,7 +15,7 @@ MonoBehaviour:
   maxDistance: 100
   baseDecay: 4
   decayPerLevel: 1.2
-  maxDecay: 18
+  maxDecay: 30
   gainPerStep: 4
   stepsPerLevel: 10
   visibleTiles: 7

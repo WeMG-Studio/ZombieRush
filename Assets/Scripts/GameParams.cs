@@ -7,7 +7,7 @@ public class GameParams : ScriptableObject
     public float maxDistance = 100f;
     public float baseDecay = 4f;          // 초당
     public float decayPerLevel = 1.2f;
-    public float maxDecay = 18f;
+    public float maxDecay = 30f;
     public float gainPerStep = 8f;        // 전진 성공 시 회복
 
     [Header("Progression")]
