@@ -1,0 +1,11 @@
+ID,Name,IconPath,PrefebPath,BuyType,BuyType_Value
+1,CharName_001,0,0,Achievement,1
+2,CharName_002,0,0,Achievement,2
+3,CharName_003,0,0,Achievement,3
+4,CharName_004,0,0,Gold,100
+5,CharName_005,0,0,Gold,200
+6,CharName_006,0,0,Gold,400
+7,CharName_007,0,0,Gold,800
+8,CharName_008,0,0,Gold,1600
+9,CharName_009,0,0,Gold,3200
+10,CharName_010,0,0,Gold,6400

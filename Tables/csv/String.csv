@@ -1,0 +1,27 @@
+ID,ko_KR,en_US
+CharName_001,일일이,oneone
+CharName_002,이이이,twotwo
+CharName_003,삼삼이,threethree
+CharName_004,사사이,fourfour
+CharName_005,오오이,fivefive
+CharName_006,육육이,sixsix
+CharName_007,칠칠이,sevenseven
+CharName_008,팔팔이,eighteight
+CharName_009,구구이,ninenine
+CharName_010,십십이,tenten
+RailName_001,레일이,Railone
+RailName_002,레이이,Railtwo
+RailName_003,레삼이,Railthree
+RailName_004,레사이,Railfour
+RailName_005,레오이,Railfive
+RailName_006,레육이,Railsix
+RailName_007,레칠이,Railseven
+RailName_008,레팔이,Raileight
+RailName_009,레구이,Railnine
+RailName_010,레십이,Railten
+ModeName_001,일반 모드,Normal
+ModeName_002,바닷속 모드,Under The Sea
+ModeName_003,타임어택,Time Attack
+ModeDesc_001,일반 모드,Normal
+ModeDesc_002,물속 친구들을 만나봐요,Let go to the Sea
+ModeDesc_003,제한 시간 내에 멀리 가봐요,Go Fast in Time
