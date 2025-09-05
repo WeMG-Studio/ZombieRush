@@ -471,6 +471,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logText: {fileID: 743125531}
+  dailyHighScoreText: {fileID: 0}
+  topRanksText: {fileID: 0}
+  dailyLeaderboardId: CgkIipCnoqAFEAIQAw
 --- !u!1 &1033689371
 GameObject:
   m_ObjectHideFlags: 0
