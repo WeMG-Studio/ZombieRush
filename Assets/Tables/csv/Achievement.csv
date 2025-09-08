@@ -1,4 +1,7 @@
 ID,Name,AchievementType,AchievementType_Value
-1,최고 점수 달성,BestScore,100
-2,최고 점수 달성,BestScore,200
-3,최고 점수 달성,BestScore,300
+1,BestScore_001,BestScore,100
+2,BestScore_001,BestScore,200
+3,BestScore_001,BestScore,300
+1001,AccumulatedScore_001,AccumulatedScore,1000
+1002,AccumulatedScore_001,AccumulatedScore,2000
+1003,AccumulatedScore_001,AccumulatedScore,3000

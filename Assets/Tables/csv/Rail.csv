@@ -1,11 +1,4 @@
-ID,Name,IconPath,PrefebPath,BuyType,BuyType_Value
-1,RailName_001,0,0,Achievement,1001
-2,RailName_002,0,0,Achievement,1002
-3,RailName_003,0,0,Achievement,1003
-4,RailName_004,0,0,Gold,200
-5,RailName_005,0,0,Gold,400
-6,RailName_006,0,0,Gold,800
-7,RailName_007,0,0,Gold,1600
-8,RailName_008,0,0,Gold,3200
-9,RailName_009,0,0,Gold,6400
-10,RailName_010,0,0,Gold,12800
+ID,Name,PrefebPath,BuyType,BuyType_Value
+1,RailName_001,0,Achievement,1001
+2,RailName_002,0,Achievement,1002
+3,RailName_003,0,Achievement,1003
