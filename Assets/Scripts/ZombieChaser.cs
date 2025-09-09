@@ -12,7 +12,7 @@ public class ZombieChaser : MonoBehaviour
 
     void OnEnable()
     {
-        if (game) game.OnDistanceNormalized += SetT;
+        if (game && game.isGameStart) game.OnDistanceNormalized += SetT;
     }
     void OnDisable()
     {
@@ -23,9 +23,13 @@ public class ZombieChaser : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!zombie || !nearPoint || !farPoint) return;
+        if(game && game.isGameStart)
+        {
+            if (!zombie || !nearPoint || !farPoint) return;
 
-        Vector3 target = Vector3.Lerp(nearPoint.position, farPoint.position, t);
-        zombie.position = Vector3.Lerp(zombie.position, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
+            Vector3 target = Vector3.Lerp(nearPoint.position, farPoint.position, t);
+            zombie.position = Vector3.Lerp(zombie.position, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
+        }
+        
     }
 }

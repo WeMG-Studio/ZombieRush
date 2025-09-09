@@ -21,6 +21,10 @@ public class RailManager : MonoBehaviour
         InitLine();
     }
 
+    public void InitRail()
+    {
+        steps = 0;
+    }
     void InitLine()
     {
         for (int i = 0; i < config.visibleTiles; i++)

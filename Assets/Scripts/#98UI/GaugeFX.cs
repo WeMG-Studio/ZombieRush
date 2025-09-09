@@ -50,6 +50,7 @@ public class GaugeFX : MonoBehaviour
 
     void Update()
     {
+        if (!GameManager.instance.isGameStart) return;
         // 펄스/흔들림/플래시는 실시간 애니메이션 필요 → 매 프레임 처리
         if (!barRect) return;
 

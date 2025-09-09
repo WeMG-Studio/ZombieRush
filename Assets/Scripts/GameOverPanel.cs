@@ -27,12 +27,13 @@ public class GameOverPanel : MonoBehaviour
     }
     private void RetryOnClick()
     {
-        var active = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(active.buildIndex);
+        // 초기화 후 게임 시작
+        StartCoroutine(GameManager.instance.RetryGame());
     }
     private void ToLobbyOnClick()
     {
-        SceneManager.LoadScene("LobbyScene");
+        var active = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(active.buildIndex);
     }
 
 

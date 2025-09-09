@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager instance;
     [SerializeField] GameOverPanel gameOverPanel;
 
     [Header("Characters")]
@@ -17,6 +19,8 @@ public class GameManager : MonoBehaviour
     public Button btnAdvance;
     public Button btnFix;
     // 상태
+    [SerializeField] TextMeshProUGUI gameStartCountText;
+    public bool isGameStart = false;
     float distance;
     int level;
     bool isDead;
@@ -39,6 +43,7 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
+        if(instance == null) instance = this;
 
         if (btnAdvance) btnAdvance.onClick.AddListener(() => Advance());
         if (btnFix) btnFix.onClick.AddListener(() => FixAndAdvance());
@@ -49,25 +54,71 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         //keyboard input test
-        if (Input.GetKeyDown(KeyCode.UpArrow)) Advance();
-        if (Input.GetKeyDown(KeyCode.Space)) FixAndAdvance();
-
-
-        if (isDead) return;
-
-        // 지속 감소(좀비 접근)
-        float decay = Mathf.Min(config.baseDecay + level * config.decayPerLevel, config.maxDecay);
-        var prev = distance;
-        distance -= decay * Time.deltaTime;
-
-        if (distance <= 0f)
+        if (isGameStart)
         {
-            distance = 0f;
-            Die("좀비에게 잡혔어!");
-        }
+            if (Input.GetKeyDown(KeyCode.UpArrow)) Advance();
+            if (Input.GetKeyDown(KeyCode.Space)) FixAndAdvance();
 
-        if (!Mathf.Approximately(prev, distance))
-            EmitDistance();
+
+            if (isDead) return;
+
+            // 지속 감소(좀비 접근)
+            float decay = Mathf.Min(config.baseDecay + level * config.decayPerLevel, config.maxDecay);
+            var prev = distance;
+            distance -= decay * Time.deltaTime;
+
+            if (distance <= 0f)
+            {
+                distance = 0f;
+                Die("좀비에게 잡혔어!");
+            }
+
+            if (!Mathf.Approximately(prev, distance))
+                EmitDistance();
+        }
+        
+    }
+    public IEnumerator StartGame()
+    {
+        Debug.Log("Start Game");
+        //todo : 3,2,1하고 게임 스타트
+        gameStartCountText.gameObject.SetActive(true);
+        gameStartCountText.text = "3";
+        yield return new WaitForSeconds(1.0f);
+        gameStartCountText.text = "2";
+        yield return new WaitForSeconds(1.0f);
+        gameStartCountText.text = "1";
+        yield return new WaitForSeconds(1.0f);
+        gameStartCountText.gameObject.SetActive(false);
+        isGameStart = true;
+        isDead = false;
+        Debug.Log(isGameStart);
+        yield return null;
+    }
+    public void InitGame()
+    {
+        gameOverPanel.gameObject.SetActive(false);
+        isDead = false;                         // ★ 반드시 false로
+        isGameStart = false;                    // 카운트다운 전에 잠깐 막기
+
+        // 진행도 리셋
+        distance = config.maxDistance;          // ★ 다시 풀로 세팅
+        level = 0;
+        rail.InitRail();
+
+        // 레일/플레이어 상태 초기화(필요 시)
+        // player.ResetState(); // ← 플레이어 이펙트/애니/체력 등 초기화 필요 시
+
+        if (btnAdvance) btnAdvance.interactable = true;
+        if (btnFix) btnFix.interactable = true;
+
+        EmitAll();
+    }
+    public IEnumerator RetryGame()
+    {
+        InitGame();        
+        StartCoroutine(StartGame());
+        yield return null;
     }
     void ApplyScrollBurst()
     {
@@ -80,6 +131,7 @@ public class GameManager : MonoBehaviour
     // 우측 버튼: 전진
     public void Advance()
     {
+        if (!isGameStart) return;
         if (isDead) return;
 
         if (!rail.TryAdvance())
@@ -98,6 +150,7 @@ public class GameManager : MonoBehaviour
     // 좌측 버튼: 교정 + 전진 (직선에서 교정하면 즉사)
     public void FixAndAdvance()
     {
+        if (!isGameStart) return;
         if (isDead) return;
         if (rail.CurrentTile == null) return;
 
@@ -142,7 +195,7 @@ public class GameManager : MonoBehaviour
         //Todo : die Panel 띄우기
         gameOverPanel.gameObject.SetActive(true);
         gameOverPanel.UpdateUI(rail.Steps);
-
+        isGameStart = false;    
     }
 
     IEnumerator FailFx()

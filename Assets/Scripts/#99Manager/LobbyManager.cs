@@ -13,6 +13,9 @@ public class LobbyManager : MonoBehaviour
 
     [SerializeField] GameObject achievementPanel;
     [SerializeField] GameObject rankingPanel;
+    [SerializeField] GameObject lobbyCanvas;
+    [SerializeField] GameObject gameCanvas;
+    [SerializeField] GameObject removableSet;
 
 
     private void Awake()
@@ -22,7 +25,13 @@ public class LobbyManager : MonoBehaviour
         rankingBtn.onClick.AddListener(RankingOnClick);
     }
     
-    private void GameStartOnClick() => SceneManager.LoadScene("GameScene");
+    private void GameStartOnClick()
+    {
+        gameCanvas.SetActive(true);
+        lobbyCanvas.SetActive(false);
+        removableSet.SetActive(false);
+        StartCoroutine(GameManager.instance.StartGame());
+    }
     private void AchievementOnClick() => achievementPanel.SetActive(true);
     private void RankingOnClick() => rankingPanel.SetActive(true);
 
