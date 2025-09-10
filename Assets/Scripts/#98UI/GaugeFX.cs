@@ -47,6 +47,15 @@ public class GaugeFX : MonoBehaviour
             fill.color = c;
         }
     }
+    void OnEnable()
+    {
+        if (dangerFlash) dangerFlash.alpha = 0f;
+        if (barRect)
+        {
+            barRect.localScale = baseScale;
+            barRect.anchoredPosition = basePos;
+        }
+    }
 
     void Update()
     {

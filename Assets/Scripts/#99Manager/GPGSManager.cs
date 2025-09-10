@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.SocialPlatforms;
 using System.Linq;
 using System.Text;
+using System.Collections;
 
 #if UNITY_ANDROID && !NO_GPGS
 using GooglePlayGames;
@@ -13,15 +15,24 @@ public class GPGSManager : MonoBehaviour
 {
     public static GPGSManager instance;
 
-    [Header("UI")]
+    [Header("IntroScene UI")]
     [SerializeField] private TextMeshProUGUI logText;
-    [SerializeField] private TextMeshProUGUI dailyHighScoreText;  // 내 데일리 점수 표시
-    [SerializeField] private TextMeshProUGUI topRanksText;        // Top N 랭킹 텍스트 표시
+    [SerializeField] private GameObject loadingPanel;     // IntroScene의 로딩 패널(처음엔 비활성)
+    [SerializeField] private UnityEngine.UI.Image progressFill; // Filled Image (fillAmount 사용)
+    [SerializeField] private TextMeshProUGUI progressText;      // 선택: "85%" 표시용
+
+    [Header("Leaderboard UI (선택)")]
+    [SerializeField] private TextMeshProUGUI dailyHighScoreText;  // 내 데일리 점수
+    [SerializeField] private TextMeshProUGUI topRanksText;        // Top N 랭킹 텍스트
 
     [Header("Leaderboard Ids")]
     [SerializeField] private string dailyLeaderboardId = GPGSIds.leaderboard_dailyhighscore;
 
+    [Header("Scene Names")]
+    [SerializeField] private string gameSceneName = "GameScene";   // 바꿔 쓰기
+
     int dailyHighScore = 0;
+    bool loadingStarted = false;    // 중복 방지
 
     void Awake()
     {
@@ -29,14 +40,34 @@ public class GPGSManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // GPGS 활성화(안전모드: config 없이 Activate만)
 #if UNITY_ANDROID && !NO_GPGS
         PlayGamesPlatform.DebugLogEnabled = false;
         PlayGamesPlatform.Activate();
 #endif
+        // IntroScene에 있을 때 로딩 UI는 꺼둠
+        if (loadingPanel) loadingPanel.SetActive(false);
+        if (progressFill) progressFill.fillAmount = 0f;
+        if (progressText) progressText.text = "0%";
     }
 
-    // ====== 동적 UI 바인딩======
+    // ====== IntroScene에서 UI를 동적으로 물릴 때 사용 ======
+    public void BindIntroUI(
+        TextMeshProUGUI _log = null,
+        GameObject _loadingPanel = null,
+        UnityEngine.UI.Image _progressFill = null,
+        TextMeshProUGUI _progressText = null,
+        TextMeshProUGUI _daily = null,
+        TextMeshProUGUI _top = null)
+    {
+        if (_log) logText = _log;
+        if (_loadingPanel) loadingPanel = _loadingPanel;
+        if (_progressFill) progressFill = _progressFill;
+        if (_progressText) progressText = _progressText;
+        if (_daily) dailyHighScoreText = _daily;
+        if (_top) topRanksText = _top;
+    }
+
+    // ====== 기존 daily/top 전용 바인딩 유지 ======
     public void BindUI(TextMeshProUGUI daily, TextMeshProUGUI top = null, TextMeshProUGUI log = null)
     {
         if (daily) dailyHighScoreText = daily;
@@ -44,7 +75,7 @@ public class GPGSManager : MonoBehaviour
         if (log) logText = log;
     }
 
-    // ====== 로그인 ======
+    // ====== 로그인 트리거 ======
     public void GPGS_Login()
     {
 #if UNITY_ANDROID && !NO_GPGS
@@ -62,6 +93,12 @@ public class GPGSManager : MonoBehaviour
             string displayName = PlayGamesPlatform.Instance.GetUserDisplayName();
             string userID = PlayGamesPlatform.Instance.GetUserId();
             Log($"로그인 성공 : {displayName} / {userID}");
+
+            if (loadingStarted) return;      // 중복 콜백 방지
+            loadingStarted = true;
+
+            // IntroScene의 로딩 UI를 사용해 GameScene 비동기 로드
+            StartCoroutine(LoadGameSceneAsync(gameSceneName));
         }
         else
         {
@@ -70,6 +107,47 @@ public class GPGSManager : MonoBehaviour
     }
 #endif
 
+    // ====== GameScene 비동기 로드(IntroScene의 progressFill 사용) ======
+    IEnumerator LoadGameSceneAsync(string sceneName)
+    {
+        if (loadingPanel) loadingPanel.SetActive(true);
+        UpdateProgressUI(0f);
+
+        AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+        op.allowSceneActivation = false;
+
+        // op.progress는 0.0 ~ 0.9까지만 증가
+        while (op.progress < 0.9f)
+        {
+            float normalized = Mathf.Clamp01(op.progress / 0.9f); // 0~1 스케일
+            UpdateProgressUI(normalized);
+            yield return null;
+        }
+
+        // 0.9 → 1.0 구간은 연출로 부드럽게 채움
+        float t = 0f;
+        const float tail = 0.25f; // 연출 시간
+        while (t < tail)
+        {
+            t += Time.unscaledDeltaTime;
+            float normalized = Mathf.Lerp(0.9f, 1f, t / tail);
+            UpdateProgressUI(normalized);
+            yield return null;
+        }
+
+        UpdateProgressUI(1f);
+        yield return new WaitForSecondsRealtime(0.05f);
+
+        op.allowSceneActivation = true; // 실제 전환
+    }
+
+    void UpdateProgressUI(float normalized01)
+    {
+        if (progressFill) progressFill.fillAmount = Mathf.Clamp01(normalized01);
+        if (progressText) progressText.text = Mathf.RoundToInt(Mathf.Clamp01(normalized01) * 100f) + "%";
+    }
+
+    // ====== 로그인 보장 후 콜백 ======
     void EnsureLoginThen(System.Action onReady)
     {
 #if UNITY_ANDROID && !NO_GPGS
@@ -115,8 +193,8 @@ public class GPGSManager : MonoBehaviour
 #if UNITY_ANDROID && !NO_GPGS
             PlayGamesPlatform.Instance.LoadScores(
                 dailyLeaderboardId,
-                LeaderboardStart.PlayerCentered,   // 내 위치 기준
-                1,                                  // PlayerScore만 필요
+                LeaderboardStart.PlayerCentered,
+                1,
                 LeaderboardCollection.Public,
                 LeaderboardTimeSpan.Daily,
                 data =>
@@ -140,13 +218,14 @@ public class GPGSManager : MonoBehaviour
     }
 
     // ====== Top N 랭킹 로드 → UI ======
-    public void LoadTopRanksToUI(int count = 10,
+    public void LoadTopRanksToUI(
+        int count = 10,
 #if UNITY_ANDROID && !NO_GPGS
-                                 GooglePlayGames.BasicApi.LeaderboardTimeSpan span = GooglePlayGames.BasicApi.LeaderboardTimeSpan.Daily
+        GooglePlayGames.BasicApi.LeaderboardTimeSpan span = GooglePlayGames.BasicApi.LeaderboardTimeSpan.Daily
 #else
-                                 int span = 0 // 더미(컴파일용)
+        int span = 0
 #endif
-                                 )
+    )
     {
         EnsureLoginThen(() =>
         {
@@ -171,7 +250,7 @@ public class GPGSManager : MonoBehaviour
                         return;
                     }
 
-                    var scores = data.Scores;        // IScore[]
+                    var scores = data.Scores;
                     var ids = scores.Select(s => s.userID).Distinct().ToArray();
 
                     Social.LoadUsers(ids, profiles =>
@@ -202,20 +281,19 @@ public class GPGSManager : MonoBehaviour
         });
     }
 
-    // ====== 원샷 리프레시(로비 버튼에 연결하기 좋음) ======
-    public void RefreshAll(int topN = 10,
+    public void RefreshAll(
+        int topN = 10,
 #if UNITY_ANDROID && !NO_GPGS
-                           GooglePlayGames.BasicApi.LeaderboardTimeSpan span = GooglePlayGames.BasicApi.LeaderboardTimeSpan.Daily
+        GooglePlayGames.BasicApi.LeaderboardTimeSpan span = GooglePlayGames.BasicApi.LeaderboardTimeSpan.Daily
 #else
-                           int span = 0
+        int span = 0
 #endif
-                           )
+    )
     {
         LoadDailyHighScoreToUI();
         LoadTopRanksToUI(topN, span);
     }
 
-    // ====== 선택: 기본 UI 열기 ======
     public void LeaderBoardUIUpdate()
     {
         EnsureLoginThen(() =>
@@ -247,6 +325,5 @@ public class GPGSManager : MonoBehaviour
         Debug.Log(msg);
     }
 
-    // 접근자(원하면 외부에서 점수 읽기)
     public int GetDailyHighScore() => dailyHighScore;
 }

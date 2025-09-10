@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class GameManager : MonoBehaviour
@@ -44,6 +45,8 @@ public class GameManager : MonoBehaviour
     public event Action<int> OnStepsChanged;
     public event Action<string> OnDied;
 
+    [SerializeField] string gameSceneName = "GameScene";
+     GameHUD gameHUD;
     // ---------------- CSV 로드/보관 ----------------
     [Serializable]
     public class LevelRow
@@ -74,7 +77,9 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        if (instance == null) instance = this;
+        if (instance != null && instance != this) { Destroy(gameObject); return; }
+        instance = this;
+        //DontDestroyOnLoad(gameObject);
 
         // 버튼 핸들러
         if (btnAdvance) btnAdvance.onClick.AddListener(() => Advance());
@@ -112,7 +117,61 @@ public class GameManager : MonoBehaviour
         if (!Mathf.Approximately(prev, distance))
             EmitDistance();
     }
+    void OnEnable()
+    {
+        // DDOL은 루트여야 함. (혹시 부모가 있으면 끊기)
+        transform.SetParent(null);
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene s, LoadSceneMode m)
+    {
+        //RebindFromScene(); 
+
+        if (s.name == gameSceneName)
+        {
+            InitGame();             // ★ 여기서 distance = config.maxDistance 로 리셋
+            EmitAll();              // ★ HUD 등이 초기값을 확실히 받게 브로드캐스트
+        }
+    }
+
+    void RebindFromScene()
+    {
+        // 1) 씬에서 바인더 찾기
+        var binder = FindObjectOfType<GameSceneBinder>();
+        if (!binder)
+        {
+            Debug.LogWarning("GameSceneBinder를 찾지 못함(이 씬에서 GameManager 참조 불필요한 경우일 수 있음).");
+            return;
+        }
+
+        // 2) 기존 버튼 리스너 정리 (중복 호출 방지)
+        btnAdvance?.onClick.RemoveAllListeners();
+        btnFix?.onClick.RemoveAllListeners();
+
+        // 3) 새 참조로 모두 재바인딩
+        gameOverPanel = binder.gameOverPanel;
+        player = binder.player;
+        config = binder.config;
+        rail = binder.rail;
+        btnAdvance = binder.btnAdvance;
+        btnFix = binder.btnFix;
+        gameStartCountText = binder.gameStartCountText;
+        wallScrollers = binder.wallScrollers;
+        binder.gameHUD.game = this;
+
+        // 4) 버튼 리스너 다시 연결
+        if (btnAdvance) btnAdvance.onClick.AddListener(Advance);
+        if (btnFix) btnFix.onClick.AddListener(FixAndAdvance);
+
+        // 5) 씬 기준 초기화가 필요하면 여기서
+        EmitAll();
+    }
     public IEnumerator StartGame()
     {
         gameStartCountText.gameObject.SetActive(true);
@@ -206,15 +265,10 @@ public class GameManager : MonoBehaviour
 
     void OnAdvancedOneStep()
     {
-        // 회복 로직 등은 기존 그대로 유지. :contentReference[oaicite:6]{index=6}
+        ProgressSegmentState();
         distance = Mathf.Min(config.maxDistance, distance + config.gainPerStep);
 
-        // 스텝 증분 → 레벨 재계산(여전히 stepsPerLevel 사용) :contentReference[oaicite:7]{index=7}
         LevelRecalc();
-
-        // 세그먼트(직진/패턴) 진행 상태 갱신
-        ProgressSegmentState();
-
         EmitAll();
         ApplyScrollBurst();
         if (player) player.PlayStepBounce(1f);

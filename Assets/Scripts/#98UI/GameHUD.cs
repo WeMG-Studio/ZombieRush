@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameHUD : MonoBehaviour
@@ -21,6 +22,12 @@ public class GameHUD : MonoBehaviour
         game.OnLevelChanged += OnLevel;
         game.OnStepsChanged += OnSteps;
         game.OnDied += OnDied;
+
+        // 초기 1회 강제 반영
+        float init = (game.isGameStart && game.config.maxDistance > 0f)
+       ? Mathf.Clamp01(game.Distance / game.config.maxDistance)
+       : 1f;
+        OnDistance(init);
     }
 
     void OnDisable()
@@ -30,6 +37,11 @@ public class GameHUD : MonoBehaviour
         game.OnLevelChanged -= OnLevel;
         game.OnStepsChanged -= OnSteps;
         game.OnDied -= OnDied;
+    }
+    void TryBindGame()
+    {
+        if (game == null)
+            game = GameManager.instance ?? FindObjectOfType<GameManager>();
     }
 
     void OnDistance(float t)

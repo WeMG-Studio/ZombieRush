@@ -9,7 +9,7 @@ public class RailManager : MonoBehaviour
     public RailTile bentPrefab;
 
     readonly Queue<RailTile> tiles = new();
-    int steps;                           // 총 전진 칸
+    public int steps;                           // 총 전진 칸
     public int Steps => steps;
 
     public RailTile CurrentTile { get; private set; }
@@ -23,14 +23,29 @@ public class RailManager : MonoBehaviour
 
     public void InitRail()
     {
+        foreach (var t in tiles) if (t) Destroy(t.gameObject);
+        tiles.Clear();
+
         steps = 0;
+        CurrentTile = null;
+
     }
 
     void InitLine()
     {
         for (int i = 0; i < config.visibleTiles; i++)
         {
-            var t = SpawnRandomTile();
+            RailTile t;
+            if (i == 0)
+            {
+                // 첫 타일은 직선 고정(전진 가능 보장)
+                t = SpawnTileForced(false); // false=직선
+            }
+            else
+            {
+                t = SpawnRandomTile();
+            }
+
             t.transform.SetParent(laneRoot, false);
             t.transform.localPosition = new Vector3(0, i * tileSpacing, 0);
             tiles.Enqueue(t);
