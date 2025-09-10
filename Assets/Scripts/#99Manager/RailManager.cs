@@ -25,6 +25,7 @@ public class RailManager : MonoBehaviour
     {
         steps = 0;
     }
+
     void InitLine()
     {
         for (int i = 0; i < config.visibleTiles; i++)
@@ -49,27 +50,50 @@ public class RailManager : MonoBehaviour
         return inst;
     }
 
+    // 새로 추가: 직선/회전을 강제로 지정해 생성
+    RailTile SpawnTileForced(bool bent)
+    {
+        var prefab = bent ? bentPrefab : straightPrefab;
+        var inst = Instantiate(prefab);
+        inst.SetType(bent ? RailType.Bent : RailType.Straight);
+        return inst;
+    }
+
     public void FixCurrent() => CurrentTile?.FixToStraight();
 
-    // ▶ 버튼: 전진. 성공 시 true, 실패 시 false
+    // ▶ 기존 버튼: 전진 (랜덤)
     public bool TryAdvance()
     {
         if (CurrentTile.Type != RailType.Straight) return false;
 
-        // 한 칸 앞으로: 모든 타일을 아래로 내리고 맨 뒤 새 타일 추가
+        AdvanceCommon(SpawnRandomTile());
+        return true;
+    }
+
+    // ▶ 새로 추가: 전진 (강제 패턴)
+    // bent = true → 회전 타일, false → 직선 타일
+    public bool TryAdvanceForced(bool bent)
+    {
+        if (CurrentTile.Type != RailType.Straight) return false;
+
+        AdvanceCommon(SpawnTileForced(bent));
+        return true;
+    }
+
+    // 타일 큐 갱신 로직 공통화
+    void AdvanceCommon(RailTile newTile)
+    {
         foreach (var t in tiles)
             t.transform.localPosition += new Vector3(0, -tileSpacing, 0);
 
         var old = tiles.Dequeue();
         Destroy(old.gameObject);
 
-        var newTile = SpawnRandomTile();
         newTile.transform.SetParent(laneRoot, false);
         newTile.transform.localPosition = new Vector3(0, (config.visibleTiles - 1) * tileSpacing, 0);
         tiles.Enqueue(newTile);
 
         CurrentTile = tiles.Peek();
         steps++;
-        return true;
     }
 }
