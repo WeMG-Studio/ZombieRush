@@ -31,7 +31,6 @@ public class GameManager : MonoBehaviour
     bool isDead;
 
     [Header("Wall Scroll")]
-    public VerticalLoopScroller[] wallScrollers;
     public float scrollBurstBase = 2.5f;
     public float scrollBurstPerLevel = 0.1f;
 
@@ -162,7 +161,6 @@ public class GameManager : MonoBehaviour
         btnAdvance = binder.btnAdvance;
         btnFix = binder.btnFix;
         gameStartCountText = binder.gameStartCountText;
-        wallScrollers = binder.wallScrollers;
         binder.gameHUD.game = this;
 
         // 4) 버튼 리스너 다시 연결
@@ -219,13 +217,6 @@ public class GameManager : MonoBehaviour
         yield return null;
     }
 
-    void ApplyScrollBurst()
-    {
-        float amount = scrollBurstBase + level * scrollBurstPerLevel;
-        if (wallScrollers != null)
-            foreach (var sc in wallScrollers)
-                if (sc) sc.AddBurst(amount);
-    }
 
     // ---------------- 진행 버튼들 ----------------
 
@@ -270,7 +261,6 @@ public class GameManager : MonoBehaviour
 
         LevelRecalc();
         EmitAll();
-        ApplyScrollBurst();
         if (player) player.PlayStepBounce(1f);
     }
 

@@ -1,40 +1,51 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro;
+using System.Collections;
+using DG.Tweening;
 
 public class LobbyManager : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] Button gameStartBtn;
-    [SerializeField] Button achievementBtn;
-    [SerializeField] Button rankingBtn;
 
-
-    [SerializeField] GameObject achievementPanel;
-    [SerializeField] GameObject rankingPanel;
-    [SerializeField] GameObject lobbyCanvas;
+    [Header("Anim Targets")]
+    [SerializeField] RectTransform[] topPanels;
+    [SerializeField] RectTransform[] bottomPanels;
+    [SerializeField] CanvasGroup lobbyGroup; // 전체 로비 페이드용 (옵션)
     [SerializeField] GameObject gameCanvas;
-    [SerializeField] GameObject removableSet;
-
 
     private void Awake()
     {
         gameStartBtn.onClick.AddListener(GameStartOnClick);
-        achievementBtn.onClick.AddListener(AchievementOnClick);
-        rankingBtn.onClick.AddListener(RankingOnClick);
     }
-    
+
     private void GameStartOnClick()
     {
-        gameCanvas.SetActive(true);
-        lobbyCanvas.SetActive(false);
-        removableSet.SetActive(false);
-        StartCoroutine(GameManager.instance.StartGame());
+        // 애니메이션 시퀀스 실행
+        Debug.Log("StartClick");
+        StartCoroutine(PlayLobbyOutAnimation());
     }
-    private void AchievementOnClick() => achievementPanel.SetActive(true);
-    private void RankingOnClick() => rankingPanel.SetActive(true);
 
+    private IEnumerator PlayLobbyOutAnimation()
+    {
+        // DOTween 쓰면 더 간단
+        float duration = 0.5f;
 
+        foreach(RectTransform rectTs in topPanels)
+        {
+            rectTs.DOAnchorPosY(rectTs.anchoredPosition.y + 700f, duration);
+        }
+        foreach (RectTransform rectTs in bottomPanels)
+        {
+            rectTs.DOAnchorPosY(rectTs.anchoredPosition.y - 700f, duration);
+        }
 
+        // 페이드 아웃 옵션
+        if (lobbyGroup) lobbyGroup.DOFade(0, duration);
+        yield return new WaitForSeconds(duration);
+
+        // 이제 게임 시작
+        StartCoroutine(GameManager.instance.StartGame());
+        gameCanvas.SetActive(true);
+    }
 }
