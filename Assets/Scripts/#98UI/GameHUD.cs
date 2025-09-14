@@ -9,6 +9,7 @@ public class GameHUD : MonoBehaviour
 
     [Header("UI")]
     public Slider distanceBar;
+    public Image hpImage;
     public TMP_Text levelText;
     public TMP_Text stepsText;
 
@@ -47,6 +48,7 @@ public class GameHUD : MonoBehaviour
     void OnDistance(float t)
     {
         if (distanceBar) distanceBar.value = t;
+        if (hpImage) hpImage.fillAmount = t;
         if (gaugeFx) gaugeFx.SetNormalized(t); // 애니메이션은 GaugeFX에서 처리
     }
 
