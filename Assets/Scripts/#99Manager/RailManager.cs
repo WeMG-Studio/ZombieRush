@@ -4,31 +4,55 @@ using UnityEngine;
 public class RailManager : MonoBehaviour
 {
     public GameParams config;
-    public Transform laneRoot;           // 타일들을 줄맞춤으로 배치할 부모
+    public Transform laneRoot;
     public RailTile straightPrefab;
     public RailTile bentPrefab;
 
     readonly Queue<RailTile> tiles = new();
-    public int steps;                           // 총 전진 칸
+    public int steps;
     public int Steps => steps;
 
     public RailTile CurrentTile { get; private set; }
 
-    float tileSpacing = 1.2f;            // 타일 간격(월드)
+    float tileSpacing = 1.2f;
 
+    // ? Start에서 자동 생성하지 않는다 (중복 방지)
     void Start()
     {
-        InitLine();
+        // 비워둠. 생성은 GameManager에서 명시적으로 호출.
+        // 필요 시, 개발 중 미리 보기용 자동 생성이 필요하면
+        // 아래 한 줄을 임시로 켜고, 실제 빌드에서는 꺼두자.
+        // BuildRailFresh();
     }
 
+    /// <summary>
+    /// 큐/자식 모두 정리만 (생성 X)
+    /// </summary>
     public void InitRail()
     {
-        foreach (var t in tiles) if (t) Destroy(t.gameObject);
+        // 큐의 타일 제거
+        foreach (var t in tiles)
+            if (t) Destroy(t.gameObject);
         tiles.Clear();
+
+        // laneRoot의 잔여 자식도 제거 (큐에 없던 잔재 방지)
+        if (laneRoot != null)
+        {
+            for (int i = laneRoot.childCount - 1; i >= 0; i--)
+                Destroy(laneRoot.GetChild(i).gameObject);
+        }
 
         steps = 0;
         CurrentTile = null;
+    }
 
+    /// <summary>
+    /// 완전 초기화 후, 새 라인 생성까지 한 번에
+    /// </summary>
+    public void BuildRailFresh()
+    {
+        InitRail();
+        InitLine(); // 새 라인 구성
     }
 
     void InitLine()
@@ -38,8 +62,7 @@ public class RailManager : MonoBehaviour
             RailTile t;
             if (i == 0)
             {
-                // 첫 타일은 직선 고정(전진 가능 보장)
-                t = SpawnTileForced(false); // false=직선
+                t = SpawnTileForced(false); // 첫 타일은 직선
             }
             else
             {
@@ -56,8 +79,7 @@ public class RailManager : MonoBehaviour
     RailTile SpawnRandomTile()
     {
         var level = Mathf.FloorToInt(steps / (float)config.stepsPerLevel);
-        float p = Mathf.Lerp(config.bentProbMin, config.bentProbMax,
-                             Mathf.InverseLerp(0, 10, level)); // 레벨 0~10 구간 스무딩
+        float p = Mathf.Lerp(config.bentProbMin, config.bentProbMax, Mathf.InverseLerp(0, 10, level));
         bool bent = Random.value < p;
         var prefab = bent ? bentPrefab : straightPrefab;
         var inst = Instantiate(prefab);
@@ -65,7 +87,6 @@ public class RailManager : MonoBehaviour
         return inst;
     }
 
-    // 새로 추가: 직선/회전을 강제로 지정해 생성
     RailTile SpawnTileForced(bool bent)
     {
         var prefab = bent ? bentPrefab : straightPrefab;
@@ -76,26 +97,20 @@ public class RailManager : MonoBehaviour
 
     public void FixCurrent() => CurrentTile?.FixToStraight();
 
-    // ▶ 기존 버튼: 전진 (랜덤)
     public bool TryAdvance()
     {
         if (CurrentTile.Type != RailType.Straight) return false;
-
         AdvanceCommon(SpawnRandomTile());
         return true;
     }
 
-    // ▶ 새로 추가: 전진 (강제 패턴)
-    // bent = true → 회전 타일, false → 직선 타일
     public bool TryAdvanceForced(bool bent)
     {
         if (CurrentTile.Type != RailType.Straight) return false;
-
         AdvanceCommon(SpawnTileForced(bent));
         return true;
     }
 
-    // 타일 큐 갱신 로직 공통화
     void AdvanceCommon(RailTile newTile)
     {
         foreach (var t in tiles)

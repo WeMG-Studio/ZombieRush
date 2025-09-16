@@ -5,6 +5,7 @@ using TMPro;
 public class GameSceneBinder : MonoBehaviour
 {
     public GameOverPanel gameOverPanel;
+    public GameContinuePanel gameContinuePanel;
     public Player player;
     public GameParams config;
     public RailManager rail;

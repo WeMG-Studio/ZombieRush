@@ -81,4 +81,92 @@ public class Player : MonoBehaviour
         transform.localRotation = _baseLocalRot;
         transform.localScale = _baseLocalScale;
     }
+    public void Revive(Vector3? localSpawn = null, float invulnDuration = 1.2f, float blinkInterval = 0.1f)
+    {
+        // 1) 진행 중인 모션·코루틴 정리
+        if (_co != null)
+        {
+            StopCoroutine(_co);
+            _co = null;
+        }
+
+        // 2) 활성화 보장
+        if (!gameObject.activeSelf) gameObject.SetActive(true);
+
+        // 3) 물리/이동 잔재 제거(있을 경우)
+        var rb = GetComponent<Rigidbody2D>();
+        if (rb != null) { rb.velocity = Vector2.zero; rb.angularVelocity = 0f; }
+        var rb3 = GetComponent<Rigidbody>();
+        if (rb3 != null) { rb3.velocity = Vector3.zero; rb3.angularVelocity = Vector3.zero; }
+
+        // 4) 위치/자세/스케일 복구
+        if (localSpawn.HasValue)
+        {
+            // 요청된 로컬 스폰 위치로 이동 (회전/스케일은 베이스 값)
+            transform.localPosition = localSpawn.Value;
+            transform.localRotation = _baseLocalRot;
+            transform.localScale = _baseLocalScale;
+        }
+        else
+        {
+            // 기본 포즈로 복귀
+            ResetPose();
+        }
+
+        // 5) 잠깐 무적 연출(렌더러 깜빡임). 0이면 스킵
+        if (invulnDuration > 0f && blinkInterval > 0f)
+            StartCoroutine(CoReviveBlink(invulnDuration, blinkInterval));
+    }
+    IEnumerator CoReviveBlink(float duration, float interval)
+    {
+        float t = 0f;
+        // 하위 모든 Renderer 대상
+        var renderers = GetComponentsInChildren<Renderer>(true);
+        // 혹시 캔버스 UI면 Graphic도 처리
+        var graphics = GetComponentsInChildren<UnityEngine.UI.Graphic>(true);
+        var tmpros = GetComponentsInChildren<TMPro.TMP_Text>(true);
+
+        // 원상태 기억
+        var rEnabled = new bool[renderers.Length];
+        for (int i = 0; i < renderers.Length; i++) rEnabled[i] = renderers[i].enabled;
+
+        // 그래픽/텍스트는 알파 토글용
+        System.Func<float> getDelta = () => useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+
+        while (t < duration)
+        {
+            // 토글
+            bool on = ((int)(t / interval) % 2) == 0;
+            for (int i = 0; i < renderers.Length; i++)
+                renderers[i].enabled = on;
+
+            // UI 그래픽/텍스트는 살짝 알파 깜빡임
+            float alpha = on ? 1f : 0.25f;
+            for (int i = 0; i < graphics.Length; i++)
+            {
+                var c = graphics[i].color; c.a = alpha; graphics[i].color = c;
+            }
+            for (int i = 0; i < tmpros.Length; i++)
+            {
+                var c = tmpros[i].color; c.a = alpha; tmpros[i].color = c;
+            }
+
+            t += getDelta();
+            yield return null;
+        }
+
+        // 원상 복구
+        for (int i = 0; i < renderers.Length; i++)
+            renderers[i].enabled = rEnabled[i];
+
+        for (int i = 0; i < graphics.Length; i++)
+        {
+            var c = graphics[i].color; c.a = 1f; graphics[i].color = c;
+        }
+        for (int i = 0; i < tmpros.Length; i++)
+        {
+            var c = tmpros[i].color; c.a = 1f; tmpros[i].color = c;
+        }
+    }
 }
+

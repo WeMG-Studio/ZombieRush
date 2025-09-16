@@ -17,6 +17,7 @@ public class GameOverPanel : MonoBehaviour
     }
     public void UpdateUI(int _score)
     {
+        GoogleAdMob.instance.gamePlayAdsCount++;
         scoreText.text = _score.ToString();
         int highScore = PlayerPrefs.GetInt("HighScore");
         if(highScore < _score)
@@ -24,6 +25,11 @@ public class GameOverPanel : MonoBehaviour
             highScoreText.text = _score.ToString();
             highScoreAlarmText.gameObject.SetActive(true);
         }else highScoreAlarmText.gameObject.SetActive(false);
+        if(GoogleAdMob.instance.gamePlayAdsCount >= 3)
+        {
+            //todo : Àü¸é±¤°í
+            GoogleAdMob.instance.ShowFrontAds();
+        }
     }
     private void RetryOnClick()
     {
