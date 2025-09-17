@@ -4,16 +4,16 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [Header("Step Sway")]
-    public float amplitude = 0.06f;     // ÁÂ¿ì Èçµé¸² Æø(¿ùµå ´ÜÀ§)
-    public float duration = 0.12f;      // ÀüÃ¼ ±æÀÌ
-    public int oscillations = 2;        // Áøµ¿ È½¼ö(¿Õº¹ ¼ö)
-    public float tiltDegrees = 6f;      // Èçµé¸²¿¡ µû¸¥ Z È¸Àü(µµ)
-    public bool useUnscaledTime = true; // ½½·Î¸ð ¹«½Ã
+    public float amplitude = 0.06f;     // ï¿½Â¿ï¿½ ï¿½ï¿½é¸² ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+    public float duration = 0.12f;      // ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
+    public int oscillations = 2;        // ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½(ï¿½Õºï¿½ ï¿½ï¿½)
+    public float tiltDegrees = 6f;      // ï¿½ï¿½é¸²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Z È¸ï¿½ï¿½(ï¿½ï¿½)
+    public bool useUnscaledTime = true; // ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     [Header("Punch (Squash & Stretch)")]
-    [Tooltip("¼öÆò È®Àå ºñÀ²(0.06 = 6%)")]
+    [Tooltip("ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(0.06 = 6%)")]
     public float punchHorizontal = 0.06f;
-    [Tooltip("¼öÁ÷ ¾ÐÃà ºñÀ²(0.08 = 8%)")]
+    [Tooltip("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(0.08 = 8%)")]
     public float punchVertical = 0.08f;
 
     Vector3 _baseLocalPos;
@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
     void Awake() => SnapBaseline();
     void OnDisable() => ResetPose();
 
-    /// ±âÁØ Æ÷Áî ÀúÀå(¿¡µðÅÍ¿¡¼­ À§Ä¡/½ºÄÉÀÏ ¹Ù²åÀ¸¸é ÇÑ ¹ø È£Ãâ)
+    /// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½)
     public void SnapBaseline()
     {
         _baseLocalPos = transform.localPosition;
@@ -32,7 +32,7 @@ public class Player : MonoBehaviour
         _baseLocalScale = transform.localScale;
     }
 
-    /// ÀüÁø/±³Á¤ ¼º°ø ½Ã È£Ãâ. strength·Î °­µµ °¡Áß(1 = ±âº»)
+    /// ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½. strengthï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(1 = ï¿½âº»)
     public void PlayStepBounce(float strength = 1f)
     {
         if (_co != null) StopCoroutine(_co);
@@ -44,7 +44,7 @@ public class Player : MonoBehaviour
         float amp = amplitude * strength;
         float dur = Mathf.Max(0.01f, duration);
         float t = 0f;
-        float omega = oscillations * Mathf.PI * 2f; // 2¥ð * Áøµ¿¼ö
+        float omega = oscillations * Mathf.PI * 2f; // 2ï¿½ï¿½ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
         while (t < dur)
         {
@@ -52,20 +52,20 @@ public class Player : MonoBehaviour
             t += dt;
             float u = Mathf.Clamp01(t / dur);
 
-            // ---- ÁÂ¿ì Èçµé¸²(+°¨¼è) ----
-            float s = Mathf.Sin(u * omega) * (1f - u); // ³¡À¸·Î °¥¼ö·Ï ÀÛ¾ÆÁü
+            // ---- ï¿½Â¿ï¿½ ï¿½ï¿½é¸²(+ï¿½ï¿½ï¿½ï¿½) ----
+            float s = Mathf.Sin(u * omega) * (1f - u); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½
             float offX = s * amp;
             transform.localPosition = _baseLocalPos + new Vector3(offX, 0f, 0f);
 
-            // ±â¿ï±â(ÁÂ¿ì ¹æÇâ¿¡ µû¶ó)
+            // ï¿½ï¿½ï¿½ï¿½(ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½)
             float z = -Mathf.Sign(offX) * Mathf.InverseLerp(0f, amp, Mathf.Abs(offX)) * tiltDegrees;
             transform.localRotation = _baseLocalRot * Quaternion.Euler(0f, 0f, z);
 
-            // ---- ÆÝÄ¡(½ºÄõ½Ã&½ºÆ®·¹Ä¡) ----
-            // ÇÑ ¹ø Æ¢°í µ¹¾Æ¿À´Â Á¾ ¸ð¾ç: 0¡æ1¡æ0
+            // ---- ï¿½ï¿½Ä¡(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½&ï¿½ï¿½Æ®ï¿½ï¿½Ä¡) ----
+            // ï¿½ï¿½ ï¿½ï¿½ Æ¢ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½: 0ï¿½ï¿½1ï¿½ï¿½0
             float punchEnvelope = Mathf.Sin(u * Mathf.PI);  // 0..1..0
-            float sx = 1f + punchHorizontal * strength * punchEnvelope; // °¡·Î ´Ã¸²
-            float sy = 1f - punchVertical * strength * punchEnvelope; // ¼¼·Î ÁÙÀÓ
+            float sx = 1f + punchHorizontal * strength * punchEnvelope; // ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½
+            float sy = 1f - punchVertical * strength * punchEnvelope; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             transform.localScale = Vector3.Scale(_baseLocalScale, new Vector3(sx, sy, 1f));
 
             yield return null;
@@ -83,64 +83,64 @@ public class Player : MonoBehaviour
     }
     public void Revive(Vector3? localSpawn = null, float invulnDuration = 1.2f, float blinkInterval = 0.1f)
     {
-        // 1) ÁøÇà ÁßÀÎ ¸ð¼Ç¡¤ÄÚ·çÆ¾ Á¤¸®
+        // 1) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¡ï¿½ï¿½Ú·ï¿½Æ¾ ï¿½ï¿½ï¿½ï¿½
         if (_co != null)
         {
             StopCoroutine(_co);
             _co = null;
         }
 
-        // 2) È°¼ºÈ­ º¸Àå
+        // 2) È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
         if (!gameObject.activeSelf) gameObject.SetActive(true);
 
-        // 3) ¹°¸®/ÀÌµ¿ ÀÜÀç Á¦°Å(ÀÖÀ» °æ¿ì)
+        // 3) ï¿½ï¿½ï¿½ï¿½/ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
         var rb = GetComponent<Rigidbody2D>();
-        if (rb != null) { rb.velocity = Vector2.zero; rb.angularVelocity = 0f; }
+        if (rb != null) { rb.linearVelocity = Vector2.zero; rb.angularVelocity = 0f; }
         var rb3 = GetComponent<Rigidbody>();
-        if (rb3 != null) { rb3.velocity = Vector3.zero; rb3.angularVelocity = Vector3.zero; }
+        if (rb3 != null) { rb3.linearVelocity = Vector3.zero; rb3.angularVelocity = Vector3.zero; }
 
-        // 4) À§Ä¡/ÀÚ¼¼/½ºÄÉÀÏ º¹±¸
+        // 4) ï¿½ï¿½Ä¡/ï¿½Ú¼ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (localSpawn.HasValue)
         {
-            // ¿äÃ»µÈ ·ÎÄÃ ½ºÆù À§Ä¡·Î ÀÌµ¿ (È¸Àü/½ºÄÉÀÏÀº º£ÀÌ½º °ª)
+            // ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ìµï¿½ (È¸ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½)
             transform.localPosition = localSpawn.Value;
             transform.localRotation = _baseLocalRot;
             transform.localScale = _baseLocalScale;
         }
         else
         {
-            // ±âº» Æ÷Áî·Î º¹±Í
+            // ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             ResetPose();
         }
 
-        // 5) Àá±ñ ¹«Àû ¿¬Ãâ(·»´õ·¯ ±ôºýÀÓ). 0ÀÌ¸é ½ºÅµ
+        // 5) ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½). 0ï¿½Ì¸ï¿½ ï¿½ï¿½Åµ
         if (invulnDuration > 0f && blinkInterval > 0f)
             StartCoroutine(CoReviveBlink(invulnDuration, blinkInterval));
     }
     IEnumerator CoReviveBlink(float duration, float interval)
     {
         float t = 0f;
-        // ÇÏÀ§ ¸ðµç Renderer ´ë»ó
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Renderer ï¿½ï¿½ï¿½
         var renderers = GetComponentsInChildren<Renderer>(true);
-        // È¤½Ã Äµ¹ö½º UI¸é Graphicµµ Ã³¸®
+        // È¤ï¿½ï¿½ Äµï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ Graphicï¿½ï¿½ Ã³ï¿½ï¿½
         var graphics = GetComponentsInChildren<UnityEngine.UI.Graphic>(true);
         var tmpros = GetComponentsInChildren<TMPro.TMP_Text>(true);
 
-        // ¿ø»óÅÂ ±â¾ï
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         var rEnabled = new bool[renderers.Length];
         for (int i = 0; i < renderers.Length; i++) rEnabled[i] = renderers[i].enabled;
 
-        // ±×·¡ÇÈ/ÅØ½ºÆ®´Â ¾ËÆÄ Åä±Û¿ë
+        // ï¿½×·ï¿½ï¿½ï¿½/ï¿½Ø½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Û¿ï¿½
         System.Func<float> getDelta = () => useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
 
         while (t < duration)
         {
-            // Åä±Û
+            // ï¿½ï¿½ï¿½
             bool on = ((int)(t / interval) % 2) == 0;
             for (int i = 0; i < renderers.Length; i++)
                 renderers[i].enabled = on;
 
-            // UI ±×·¡ÇÈ/ÅØ½ºÆ®´Â »ìÂ¦ ¾ËÆÄ ±ôºýÀÓ
+            // UI ï¿½×·ï¿½ï¿½ï¿½/ï¿½Ø½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Â¦ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             float alpha = on ? 1f : 0.25f;
             for (int i = 0; i < graphics.Length; i++)
             {
@@ -155,7 +155,7 @@ public class Player : MonoBehaviour
             yield return null;
         }
 
-        // ¿ø»ó º¹±¸
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         for (int i = 0; i < renderers.Length; i++)
             renderers[i].enabled = rEnabled[i];
 
