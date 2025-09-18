@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.SocialPlatforms;
@@ -16,7 +17,6 @@ public class GPGSManager : MonoBehaviour
     public static GPGSManager instance;
 
     [Header("IntroScene UI")]
-    [SerializeField] private TextMeshProUGUI logText;
     [SerializeField] private GameObject loadingPanel;     // IntroScene의 로딩 패널(처음엔 비활성)
     [SerializeField] private UnityEngine.UI.Image progressFill; // Filled Image (fillAmount 사용)
     [SerializeField] private TextMeshProUGUI progressText;      // 선택: "85%" 표시용
@@ -31,6 +31,9 @@ public class GPGSManager : MonoBehaviour
     [Header("Scene Names")]
     [SerializeField] private string gameSceneName = "GameScene";   // 바꿔 쓰기
 
+    [SerializeField] Button startOnClickBtn;
+    [SerializeField] GameObject startOnClickImage;
+    [SerializeField] Button googleLoginBtn;
     int dailyHighScore = 0;
     bool loadingStarted = false;    // 중복 방지
 
@@ -43,6 +46,27 @@ public class GPGSManager : MonoBehaviour
 #if UNITY_ANDROID && !NO_GPGS
         PlayGamesPlatform.DebugLogEnabled = false;
         PlayGamesPlatform.Activate();
+        //자동 로그인 시도
+        PlayGamesPlatform.Instance.Authenticate(status =>
+        {
+            if (status == SignInStatus.Success)
+            {
+                Log("자동 로그인 성공");
+                if (!loadingStarted)
+                {
+                    loadingStarted = true;
+                    startOnClickBtn.gameObject.SetActive(true);
+                    startOnClickImage.gameObject.SetActive(true);
+                    //StartCoroutine(LoadGameSceneAsync(gameSceneName));
+                }
+            }
+            else
+            {
+                Log($"자동 로그인 실패: {status}");
+                // TODO: IntroScene에 로그인 버튼을 노출해 수동 로그인 시도 가능
+                googleLoginBtn.gameObject.SetActive(true);
+            }
+        });
 #endif
         // IntroScene에 있을 때 로딩 UI는 꺼둠
         if (loadingPanel) loadingPanel.SetActive(false);
@@ -59,7 +83,6 @@ public class GPGSManager : MonoBehaviour
         TextMeshProUGUI _daily = null,
         TextMeshProUGUI _top = null)
     {
-        if (_log) logText = _log;
         if (_loadingPanel) loadingPanel = _loadingPanel;
         if (_progressFill) progressFill = _progressFill;
         if (_progressText) progressText = _progressText;
@@ -67,12 +90,15 @@ public class GPGSManager : MonoBehaviour
         if (_top) topRanksText = _top;
     }
 
+    public void StartOnClick()
+    {
+        StartCoroutine(LoadGameSceneAsync(gameSceneName));
+    }
     // ====== 기존 daily/top 전용 바인딩 유지 ======
     public void BindUI(TextMeshProUGUI daily, TextMeshProUGUI top = null, TextMeshProUGUI log = null)
     {
         if (daily) dailyHighScoreText = daily;
         if (top) topRanksText = top;
-        if (log) logText = log;
     }
 
     // ====== 로그인 트리거 ======
@@ -81,6 +107,7 @@ public class GPGSManager : MonoBehaviour
 #if UNITY_ANDROID && !NO_GPGS
         PlayGamesPlatform.Instance.Authenticate(ProcessAuthentication);
 #else
+         StartCoroutine(LoadGameSceneAsync("GameScene"));
         Log("GPGS 비활성 환경");
 #endif
     }
@@ -183,6 +210,10 @@ public class GPGSManager : MonoBehaviour
                 success => Log($"[업로드] {(success ? "성공" : "실패")}"));
 #endif
         });
+    }
+    public void TestStartOnClick()
+    {
+        SceneManager.LoadScene("GameScene");
     }
 
     // ====== 내 점수 로드 → UI ======
@@ -321,7 +352,6 @@ public class GPGSManager : MonoBehaviour
 
     void Log(string msg)
     {
-        if (logText) logText.text = msg;
         Debug.Log(msg);
     }
 

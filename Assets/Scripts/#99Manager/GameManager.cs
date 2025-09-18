@@ -35,6 +35,10 @@ public class GameManager : MonoBehaviour
     [Header("Wall Scroll")]
     public float scrollBurstBase = 2.5f;
     public float scrollBurstPerLevel = 0.1f;
+    [SerializeField] AudioClip forwardClip;
+    [SerializeField] AudioClip rotateClip;
+    [SerializeField] AudioClip[] readyClips;
+    [SerializeField] AudioClip[] inGameBgms;
 
     // 외부 노출
     public float Distance => distance;
@@ -76,7 +80,7 @@ public class GameManager : MonoBehaviour
 
         LoadLevelCsv();
         LoadPatternCsv();
-
+        
         distance = config.maxDistance;
         EmitAll();
     }
@@ -171,15 +175,22 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator StartGame()
     {
+        SoundManager.instance.StopAllBGM();
         gameStartCountText.gameObject.SetActive(true);
         gameStartCountText.text = "3";
+        SoundManager.instance.PlaySound(readyClips[0]);
         yield return new WaitForSeconds(1.0f);
         gameStartCountText.text = "2";
+        SoundManager.instance.PlaySound(readyClips[1]);
         yield return new WaitForSeconds(1.0f);
         gameStartCountText.text = "1";
+        SoundManager.instance.PlaySound(readyClips[2]);
         yield return new WaitForSeconds(1.0f);
+        SoundManager.instance.PlaySound(readyClips[3]);
         gameStartCountText.gameObject.SetActive(false);
 
+        int a = UnityEngine.Random.Range(0, 2);
+        SoundManager.instance.PlayBGM(inGameBgms[a]);
         isGameStart = true;
         isDead = false;
         PrepareNextSegment();
@@ -222,6 +233,7 @@ public class GameManager : MonoBehaviour
     public void Advance()
     {
         if (!isGameStart || isDead) return;
+        SoundManager.instance.PlaySound(forwardClip);
         if (rail.CurrentTile.Type != RailType.Straight)
         {
             Debug.LogError($"[Die@Advance] 비직선 전진 | tile={rail.CurrentTile.Type}, steps={rail.Steps}");
@@ -236,6 +248,7 @@ public class GameManager : MonoBehaviour
         if (!isGameStart || isDead) return;
         if (rail.CurrentTile == null) return;
 
+        SoundManager.instance.PlaySound(rotateClip);
         if (rail.CurrentTile.Type == RailType.Straight)
         {
             Debug.LogError($"[Die@Fix] 직선에서 교정 | tile={rail.CurrentTile.Type}, steps={rail.Steps}");
@@ -280,6 +293,11 @@ public class GameManager : MonoBehaviour
         }
         
         isGameStart = false;
+    }
+    public void GameOverPanelActive(bool type)
+    {
+        gameOverPanel.gameObject.SetActive(type);
+        gameContinuePanel.gameObject.SetActive(!type);
     }
 
     IEnumerator FailFx()
@@ -373,13 +391,51 @@ public class GameManager : MonoBehaviour
 
     LevelRow GetLevelRow(int lv)
     {
+        // 정확히 존재하는 레벨이면 그대로 반환
+        if (levelTable.TryGetValue(lv, out var row))
+            return row;
+
+        // 최소 / 최대 키 찾기
+        int minKey = int.MaxValue;
+        int maxKey = int.MinValue;
+        LevelRow minRow = null;
+        LevelRow maxRow = null;
+
+        foreach (var kv in levelTable)
+        {
+            if (kv.Key < minKey) { minKey = kv.Key; minRow = kv.Value; }
+            if (kv.Key > maxKey) { maxKey = kv.Key; maxRow = kv.Value; }
+        }
+
+        // CSV 자체가 비어있는 경우
+        if (minRow == null || maxRow == null)
+        {
+            Debug.LogError("Level CSV가 비어있음!");
+            return new LevelRow { ID = 0, Decay = 1f, Straight_MIN = 1, Straight_MAX = 1, PatternIDs = new List<int>() };
+        }
+
+        // lv가 최대값을 넘은 경우 → 항상 마지막(최대) 레벨 데이터 반환
+        if (lv > maxKey)
+        {
+            return maxRow;
+        }
+
+        // lv가 최소보다 작은 경우 → 최소 레벨 반환
+        if (lv < minKey)
+        {
+            return minRow;
+        }
+        return minRow;
+    }
+    /*LevelRow GetLevelRow(int lv)
+    {
         if (levelTable.TryGetValue(lv, out var row)) return row;
         int minKey = int.MaxValue; LevelRow minRow = null;
         foreach (var kv in levelTable) if (kv.Key < minKey) { minKey = kv.Key; minRow = kv.Value; }
         if (minRow != null) return minRow;
         Debug.LogError("Level CSV가 비어있음!");
         return new LevelRow { ID = 0, Decay = 1f, Straight_MIN = 1, Straight_MAX = 1, PatternIDs = new List<int>() };
-    }
+    }*/
 
     int[] GetPatternArray(int patternId)
     {

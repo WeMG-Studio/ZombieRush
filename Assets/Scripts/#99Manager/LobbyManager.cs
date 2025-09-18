@@ -14,15 +14,24 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] CanvasGroup lobbyGroup; // 전체 로비 페이드용 (옵션)
     [SerializeField] GameObject gameCanvas;
 
+    [Header("SFX")]
+    [SerializeField] AudioClip startClickClip;
+    [SerializeField] AudioClip lobbyBgm;
+
     private void Awake()
     {
         gameStartBtn.onClick.AddListener(GameStartOnClick);
+    }
+    private void Start()
+    {
+        SoundManager.instance.PlayBGM(lobbyBgm);
     }
 
     private void GameStartOnClick()
     {
         // 애니메이션 시퀀스 실행
         Debug.Log("StartClick");
+        SoundManager.instance.PlaySound(startClickClip);
         StartCoroutine(PlayLobbyOutAnimation());
     }
 

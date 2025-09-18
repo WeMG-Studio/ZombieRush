@@ -4,16 +4,16 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [Header("Step Sway")]
-    public float amplitude = 0.06f;     // ÁÂ¿ì Èçµé¸² Æø(¿ùµå ´ÜÀ§)
-    public float duration = 0.12f;      // ÀüÃ¼ ±æÀÌ
-    public int oscillations = 2;        // Áøµ¿ È½¼ö(¿Õº¹ ¼ö)
-    public float tiltDegrees = 6f;      // Èçµé¸²¿¡ µû¸¥ Z È¸Àü(µµ)
-    public bool useUnscaledTime = true; // ½½·Î¸ğ ¹«½Ã
+    public float amplitude = 0.06f;     // ì¢Œìš° í”ë“¤ë¦¼ í­(ì›”ë“œ ë‹¨ìœ„)
+    public float duration = 0.12f;      // ì „ì²´ ê¸¸ì´
+    public int oscillations = 2;        // ì§„ë™ íšŸìˆ˜(ì™•ë³µ ìˆ˜)
+    public float tiltDegrees = 6f;      // í”ë“¤ë¦¼ì— ë”°ë¥¸ Z íšŒì „(ë„)
+    public bool useUnscaledTime = true; // ìŠ¬ë¡œëª¨ ë¬´ì‹œ
 
     [Header("Punch (Squash & Stretch)")]
-    [Tooltip("¼öÆò È®Àå ºñÀ²(0.06 = 6%)")]
+    [Tooltip("ìˆ˜í‰ í™•ì¥ ë¹„ìœ¨(0.06 = 6%)")]
     public float punchHorizontal = 0.06f;
-    [Tooltip("¼öÁ÷ ¾ĞÃà ºñÀ²(0.08 = 8%)")]
+    [Tooltip("ìˆ˜ì§ ì••ì¶• ë¹„ìœ¨(0.08 = 8%)")]
     public float punchVertical = 0.08f;
 
     Vector3 _baseLocalPos;
@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
     void Awake() => SnapBaseline();
     void OnDisable() => ResetPose();
 
-    /// ±âÁØ Æ÷Áî ÀúÀå(¿¡µğÅÍ¿¡¼­ À§Ä¡/½ºÄÉÀÏ ¹Ù²åÀ¸¸é ÇÑ ¹ø È£Ãâ)
+    /// ê¸°ì¤€ í¬ì¦ˆ ì €ì¥(ì—ë””í„°ì—ì„œ ìœ„ì¹˜/ìŠ¤ì¼€ì¼ ë°”ê¿¨ìœ¼ë©´ í•œ ë²ˆ í˜¸ì¶œ)
     public void SnapBaseline()
     {
         _baseLocalPos = transform.localPosition;
@@ -32,7 +32,7 @@ public class Player : MonoBehaviour
         _baseLocalScale = transform.localScale;
     }
 
-    /// ÀüÁø/±³Á¤ ¼º°ø ½Ã È£Ãâ. strength·Î °­µµ °¡Áß(1 = ±âº»)
+    /// ì „ì§„/êµì • ì„±ê³µ ì‹œ í˜¸ì¶œ. strengthë¡œ ê°•ë„ ê°€ì¤‘(1 = ê¸°ë³¸)
     public void PlayStepBounce(float strength = 1f)
     {
         if (_co != null) StopCoroutine(_co);
@@ -44,7 +44,7 @@ public class Player : MonoBehaviour
         float amp = amplitude * strength;
         float dur = Mathf.Max(0.01f, duration);
         float t = 0f;
-        float omega = oscillations * Mathf.PI * 2f; // 2¥ğ * Áøµ¿¼ö
+        float omega = oscillations * Mathf.PI * 2f; // 2Ï€ * ì§„ë™ìˆ˜
 
         while (t < dur)
         {
@@ -52,20 +52,20 @@ public class Player : MonoBehaviour
             t += dt;
             float u = Mathf.Clamp01(t / dur);
 
-            // ---- ÁÂ¿ì Èçµé¸²(+°¨¼è) ----
-            float s = Mathf.Sin(u * omega) * (1f - u); // ³¡À¸·Î °¥¼ö·Ï ÀÛ¾ÆÁü
+            // ---- ì¢Œìš° í”ë“¤ë¦¼(+ê°ì‡ ) ----
+            float s = Mathf.Sin(u * omega) * (1f - u); // ëìœ¼ë¡œ ê°ˆìˆ˜ë¡ ì‘ì•„ì§
             float offX = s * amp;
             transform.localPosition = _baseLocalPos + new Vector3(offX, 0f, 0f);
 
-            // ±â¿ï±â(ÁÂ¿ì ¹æÇâ¿¡ µû¶ó)
+            // ê¸°ìš¸ê¸°(ì¢Œìš° ë°©í–¥ì— ë”°ë¼)
             float z = -Mathf.Sign(offX) * Mathf.InverseLerp(0f, amp, Mathf.Abs(offX)) * tiltDegrees;
             transform.localRotation = _baseLocalRot * Quaternion.Euler(0f, 0f, z);
 
-            // ---- ÆİÄ¡(½ºÄõ½Ã&½ºÆ®·¹Ä¡) ----
-            // ÇÑ ¹ø Æ¢°í µ¹¾Æ¿À´Â Á¾ ¸ğ¾ç: 0¡æ1¡æ0
+            // ---- í€ì¹˜(ìŠ¤ì¿¼ì‹œ&ìŠ¤íŠ¸ë ˆì¹˜) ----
+            // í•œ ë²ˆ íŠ€ê³  ëŒì•„ì˜¤ëŠ” ì¢… ëª¨ì–‘: 0â†’1â†’0
             float punchEnvelope = Mathf.Sin(u * Mathf.PI);  // 0..1..0
-            float sx = 1f + punchHorizontal * strength * punchEnvelope; // °¡·Î ´Ã¸²
-            float sy = 1f - punchVertical * strength * punchEnvelope; // ¼¼·Î ÁÙÀÓ
+            float sx = 1f + punchHorizontal * strength * punchEnvelope; // ê°€ë¡œ ëŠ˜ë¦¼
+            float sy = 1f - punchVertical * strength * punchEnvelope; // ì„¸ë¡œ ì¤„ì„
             transform.localScale = Vector3.Scale(_baseLocalScale, new Vector3(sx, sy, 1f));
 
             yield return null;
@@ -83,64 +83,64 @@ public class Player : MonoBehaviour
     }
     public void Revive(Vector3? localSpawn = null, float invulnDuration = 1.2f, float blinkInterval = 0.1f)
     {
-        // 1) ÁøÇà ÁßÀÎ ¸ğ¼Ç¡¤ÄÚ·çÆ¾ Á¤¸®
+        // 1) ì§„í–‰ ì¤‘ì¸ ëª¨ì…˜Â·ì½”ë£¨í‹´ ì •ë¦¬
         if (_co != null)
         {
             StopCoroutine(_co);
             _co = null;
         }
 
-        // 2) È°¼ºÈ­ º¸Àå
+        // 2) í™œì„±í™” ë³´ì¥
         if (!gameObject.activeSelf) gameObject.SetActive(true);
 
-        // 3) ¹°¸®/ÀÌµ¿ ÀÜÀç Á¦°Å(ÀÖÀ» °æ¿ì)
+        // 3) ë¬¼ë¦¬/ì´ë™ ì”ì¬ ì œê±°(ìˆì„ ê²½ìš°)
         var rb = GetComponent<Rigidbody2D>();
-        if (rb != null) { rb.velocity = Vector2.zero; rb.angularVelocity = 0f; }
+        if (rb != null) { rb.linearVelocity = Vector2.zero; rb.angularVelocity = 0f; }
         var rb3 = GetComponent<Rigidbody>();
-        if (rb3 != null) { rb3.velocity = Vector3.zero; rb3.angularVelocity = Vector3.zero; }
+        if (rb3 != null) { rb3.linearVelocity = Vector3.zero; rb3.angularVelocity = Vector3.zero; }
 
-        // 4) À§Ä¡/ÀÚ¼¼/½ºÄÉÀÏ º¹±¸
+        // 4) ìœ„ì¹˜/ìì„¸/ìŠ¤ì¼€ì¼ ë³µêµ¬
         if (localSpawn.HasValue)
         {
-            // ¿äÃ»µÈ ·ÎÄÃ ½ºÆù À§Ä¡·Î ÀÌµ¿ (È¸Àü/½ºÄÉÀÏÀº º£ÀÌ½º °ª)
+            // ìš”ì²­ëœ ë¡œì»¬ ìŠ¤í° ìœ„ì¹˜ë¡œ ì´ë™ (íšŒì „/ìŠ¤ì¼€ì¼ì€ ë² ì´ìŠ¤ ê°’)
             transform.localPosition = localSpawn.Value;
             transform.localRotation = _baseLocalRot;
             transform.localScale = _baseLocalScale;
         }
         else
         {
-            // ±âº» Æ÷Áî·Î º¹±Í
+            // ê¸°ë³¸ í¬ì¦ˆë¡œ ë³µê·€
             ResetPose();
         }
 
-        // 5) Àá±ñ ¹«Àû ¿¬Ãâ(·»´õ·¯ ±ôºıÀÓ). 0ÀÌ¸é ½ºÅµ
+        // 5) ì ê¹ ë¬´ì  ì—°ì¶œ(ë Œë”ëŸ¬ ê¹œë¹¡ì„). 0ì´ë©´ ìŠ¤í‚µ
         if (invulnDuration > 0f && blinkInterval > 0f)
             StartCoroutine(CoReviveBlink(invulnDuration, blinkInterval));
     }
     IEnumerator CoReviveBlink(float duration, float interval)
     {
         float t = 0f;
-        // ÇÏÀ§ ¸ğµç Renderer ´ë»ó
+        // í•˜ìœ„ ëª¨ë“  Renderer ëŒ€ìƒ
         var renderers = GetComponentsInChildren<Renderer>(true);
-        // È¤½Ã Äµ¹ö½º UI¸é Graphicµµ Ã³¸®
+        // í˜¹ì‹œ ìº”ë²„ìŠ¤ UIë©´ Graphicë„ ì²˜ë¦¬
         var graphics = GetComponentsInChildren<UnityEngine.UI.Graphic>(true);
         var tmpros = GetComponentsInChildren<TMPro.TMP_Text>(true);
 
-        // ¿ø»óÅÂ ±â¾ï
+        // ì›ìƒíƒœ ê¸°ì–µ
         var rEnabled = new bool[renderers.Length];
         for (int i = 0; i < renderers.Length; i++) rEnabled[i] = renderers[i].enabled;
 
-        // ±×·¡ÇÈ/ÅØ½ºÆ®´Â ¾ËÆÄ Åä±Û¿ë
+        // ê·¸ë˜í”½/í…ìŠ¤íŠ¸ëŠ” ì•ŒíŒŒ í† ê¸€ìš©
         System.Func<float> getDelta = () => useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
 
         while (t < duration)
         {
-            // Åä±Û
+            // í† ê¸€
             bool on = ((int)(t / interval) % 2) == 0;
             for (int i = 0; i < renderers.Length; i++)
                 renderers[i].enabled = on;
 
-            // UI ±×·¡ÇÈ/ÅØ½ºÆ®´Â »ìÂ¦ ¾ËÆÄ ±ôºıÀÓ
+            // UI ê·¸ë˜í”½/í…ìŠ¤íŠ¸ëŠ” ì‚´ì§ ì•ŒíŒŒ ê¹œë¹¡ì„
             float alpha = on ? 1f : 0.25f;
             for (int i = 0; i < graphics.Length; i++)
             {
@@ -155,7 +155,7 @@ public class Player : MonoBehaviour
             yield return null;
         }
 
-        // ¿ø»ó º¹±¸
+        // ì›ìƒ ë³µêµ¬
         for (int i = 0; i < renderers.Length; i++)
             renderers[i].enabled = rEnabled[i];
 

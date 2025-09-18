@@ -127,6 +127,7 @@ public class GoogleAdMob : MonoBehaviour
                 {
                     Debug.LogError("Rewarded ad failed to load an ad " +
                                    "with error : " + error);
+                    GameManager.instance.GameOverPanelActive(true);
                     return;
                 }
 
